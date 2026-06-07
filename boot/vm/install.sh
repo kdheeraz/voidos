@@ -45,6 +45,15 @@ usermod -aG video,render,input "$VOID_USER" 2>/dev/null || true
 # let the AI install apps on demand (gui-run → apt) without a password prompt
 echo "$VOID_USER ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt" > /etc/sudoers.d/voidos
 chmod 440 /etc/sudoers.d/voidos
+# let the AI set system time/zone via timedatectl without hanging on a polkit auth prompt
+install -d /etc/polkit-1/rules.d
+cat > /etc/polkit-1/rules.d/49-voidos-timedate.rules <<'POLKIT'
+polkit.addRule(function(action, subject) {
+  if (action.id.indexOf("org.freedesktop.timedate1.") === 0 && subject.user === "void") {
+    return polkit.Result.YES;
+  }
+});
+POLKIT
 mkdir -p /var/void/.void
 chown -R "$VOID_USER":"$VOID_USER" /var/void
 
