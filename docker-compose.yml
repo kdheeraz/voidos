@@ -1,0 +1,21 @@
+# Run voidOS (kernel + mind + desktop) in Docker, then open the desktop:
+#   OLLAMA_API_KEY=... docker compose up --build
+#   → http://localhost:7777/os
+#
+# The OS runs in the container; your browser is just the screen.
+services:
+  voidos:
+    build:
+      context: .
+      dockerfile: boot/Dockerfile
+    image: voidos:dev
+    # publish ONLY to host localhost (the Console exposes a syscall bridge)
+    ports:
+      - "127.0.0.1:7777:7777"
+    environment:
+      VOID_DESKTOP: "1"          # voidinit also launches the web desktop
+      VOID_UI_HOST: "0.0.0.0"    # bind inside the container so the port maps out
+      VOID_POLICY: "guarded"
+      OLLAMA_API_KEY: "${OLLAMA_API_KEY:-}"   # for the Mind; dashboard works without
+      VOID_MODEL: "${VOID_MODEL:-gpt-oss:120b}"
+    stop_grace_period: 5s

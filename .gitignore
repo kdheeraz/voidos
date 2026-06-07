@@ -1,0 +1,23 @@
+# secrets & local agent config (NEVER commit — holds API keys)
+.claude/
+**/operator.token
+*.token
+
+# voidOS rootfs — runtime state, sockets, agent memory
+vfs/
+
+# build artifacts (regenerable by boot/vm packaging)
+voidos-vm.tar.gz
+
+# node
+node_modules/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# editor / os
+.DS_Store
+*.log

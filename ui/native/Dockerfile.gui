@@ -1,0 +1,7 @@
+# Proof that voidOS can run native GUI apps: a headless X server (Xvfb) + Tk.
+# Build: docker build -t voidos-gui -f ui/native/Dockerfile.gui ui/native
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      python3 python3-tk xvfb imagemagick fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+COPY gui_demo.py /app/gui_demo.py

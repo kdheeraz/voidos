@@ -1,0 +1,9 @@
+.git
+.venv
+venv
+node_modules
+vfs
+**/__pycache__
+*.pyc
+*.log
+docs

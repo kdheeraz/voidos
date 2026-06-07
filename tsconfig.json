@@ -1,0 +1,16 @@
+{
+  "//": "Editor/DX config only. Runtime uses Node's native type-stripping (node kernel/src/index.ts). Optional: npm i -D typescript @types/node for full checking.",
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "lib": ["ES2023"],
+    "skipLibCheck": true
+  },
+  "include": ["kernel/**/*.ts"]
+}

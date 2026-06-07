@@ -1,0 +1,20 @@
+# voidOS + a native-GUI bridge: a virtual X display (Xvfb) + window manager +
+# VNC→noVNC, so real Linux GUI apps (VLC, GIMP, any X11/Qt app) run and stream
+# into the /os "Screen" window. Build the base image first:
+#   docker build -t voidos:dev  -f boot/Dockerfile     .
+#   docker build -t voidos:gui  -f boot/Dockerfile.gui .
+FROM voidos:dev
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      xvfb x11vnc novnc websockify openbox xterm x11-apps imagemagick \
+      dbus-x11 fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m gui
+
+COPY boot/gui/gui-run /usr/local/bin/gui-run
+COPY boot/gui/gui-boot.sh /usr/local/bin/gui-boot.sh
+RUN chmod +x /usr/local/bin/gui-run /usr/local/bin/gui-boot.sh
+
+# voidinit also serves the /os desktop; bind so the ports map out.
+ENV VOID_DESKTOP=1 VOID_UI_HOST=0.0.0.0
+ENTRYPOINT ["/usr/local/bin/gui-boot.sh"]

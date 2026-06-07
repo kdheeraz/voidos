@@ -1,0 +1,14 @@
+[Unit]
+Description=voidOS kernel (syscall gate)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=void
+EnvironmentFile=/etc/voidos/env
+ExecStart=/usr/bin/node /opt/voidos/kernel/src/index.ts
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

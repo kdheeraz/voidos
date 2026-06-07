@@ -1,0 +1,119 @@
+:root {
+  --bg: #0a0e12;
+  --panel: #0d1117;
+  --head: #11161c;
+  --line: #1f2630;
+  --fg: #c9d1d9;
+  --dim: #6b7585;
+  --cyan: #1793d1;   /* arch blue */
+  --green: #21d07a;
+  --red: #f85149;
+  --amber: #d29922;
+  --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.dim { color: var(--dim); }
+
+#bar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; justify-content: space-between; align-items: center;
+  height: 30px; padding: 0 12px;
+  background: var(--head); border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.b-left { font-weight: 700; letter-spacing: .04em; }
+.dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px;
+  background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.b-right { color: var(--dim); }
+.b-right b { color: var(--fg); font-weight: 600; }
+
+.fetch {
+  display: flex; gap: 28px; align-items: center;
+  padding: 16px 18px; border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.logo { margin: 0; color: var(--cyan); font-size: 12px; line-height: 1.15;
+  text-shadow: 0 0 14px rgba(23,147,209,.35); white-space: pre; }
+.finfo { display: grid; grid-template-columns: auto 1fr; gap: 1px 14px; font-size: 12px; }
+.finfo .k { color: var(--cyan); }
+.finfo .v { color: var(--fg); }
+
+#grid {
+  display: grid; grid-template-columns: minmax(360px, 1fr) 1.25fr;
+  gap: 10px; padding: 10px; align-items: start;
+}
+@media (max-width: 900px) { #grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 5px;
+  display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+}
+.phead {
+  background: var(--head); color: var(--cyan);
+  padding: 6px 10px; border-bottom: 1px solid var(--line);
+  font-weight: 600; letter-spacing: .03em; font-size: 12px;
+  display: flex; align-items: center;
+}
+.badge { margin-left: auto; color: var(--dim); background: #0a0e12;
+  border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; font-size: 11px; }
+.pbody { padding: 8px 10px; overflow: auto; font-size: 12px; }
+.pbody.scroll { max-height: 220px; }
+
+/* terminal / chat */
+.term { grid-row: 1 / span 2; min-height: 66vh; }
+.termlog { flex: 1; overflow: auto; padding: 10px 12px; min-height: 240px; }
+.termlog .turn { margin-bottom: 12px; }
+.termlog .you { color: var(--cyan); white-space: pre-wrap; }
+.termlog .void { color: var(--green); white-space: pre-wrap; margin-top: 2px; }
+.termlog .void::before { content: "void> "; color: var(--green); }
+.termlog .you::before { content: "you> "; color: var(--cyan); }
+.termlog .err { color: var(--red); white-space: pre-wrap; }
+.termlog .sys { color: var(--dim); font-size: 11px; margin-top: 4px; }
+.termlog .sys .rk-read { color: var(--dim); }
+.termlog .sys .rk-write { color: var(--amber); }
+.termlog .sys .rk-exec { color: var(--red); }
+.termlog .thinking { color: var(--amber); }
+.terminput { display: flex; align-items: center; gap: 8px;
+  border-top: 1px solid var(--line); padding: 8px 12px; }
+.terminput .prompt { color: var(--cyan); }
+.terminput input {
+  flex: 1; background: transparent; border: 0; outline: 0;
+  color: var(--fg); font-family: var(--mono); font-size: 13px;
+}
+.terminput input:disabled { color: var(--dim); }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 1200px) { .tiles { grid-template-columns: 1fr; } }
+.tiles .wide { grid-column: 1 / -1; }
+
+table { width: 100%; border-collapse: collapse; }
+td, th { text-align: left; padding: 2px 6px 2px 0; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+th { color: var(--dim); font-weight: 500; border-bottom: 1px solid var(--line); }
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; }
+.kv .k { color: var(--cyan); }
+
+.pill { font-size: 11px; }
+.st-running, .ok { color: var(--green); }
+.st-restarting { color: var(--amber); }
+.st-stopped, .st-exited { color: var(--dim); }
+.st-failed, .deny { color: var(--red); }
+
+.rk { display: inline-block; min-width: 42px; }
+.rk-read { color: var(--dim); }
+.rk-write { color: var(--amber); }
+.rk-exec { color: var(--red); }
+
+.audit-line { font-size: 11px; display: flex; gap: 8px; }
+.audit-line .when { color: var(--dim); }
+.empty { color: var(--dim); font-style: italic; }

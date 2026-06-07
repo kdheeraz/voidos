@@ -1,0 +1,41 @@
+rounded = 18
+border_width = 0
+background_color = #2a1418 30
+border_color = #ffffff 0
+rounded = 12
+border_width = 0
+background_color = #ffffff 10
+border_color = #000000 0
+rounded = 12
+border_width = 0
+background_color = #ff9f7a 44
+border_color = #ffb89c 85
+
+panel_items = T
+panel_position = top center horizontal
+panel_size = 42% 70
+panel_margin = 0 0
+panel_background_id = 1
+panel_layer = top
+strut_policy = none
+panel_padding = 14 9 12
+wm_menu = 0
+font_shadow = 0
+
+# auto-hide: tuck away off the top; reveal on hover at the top-center edge
+autohide = 1
+autohide_show_timeout = 0.15
+autohide_hide_timeout = 0.5
+autohide_height = 2
+
+taskbar_mode = single_desktop
+taskbar_padding = 6 9 6
+taskbar_background_id = 0
+task_text = 0
+task_icon = 1
+task_centered = 1
+task_maximum_size = 62 54
+task_padding = 13 7 10
+task_background_id = 2
+task_active_background_id = 3
+task_tooltip = 1

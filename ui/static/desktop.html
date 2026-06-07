@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>voidOS desktop</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #05080a;
+    display: flex; align-items: center; justify-content: center;
+    font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; color: #6b7585; }
+  #hint { position: fixed; top: 8px; left: 12px; right: 12px; font-size: 11px;
+    color: #6b7585; display: flex; justify-content: space-between; }
+  #hint b { color: #1793d1; }
+  #screen { display: block; image-rendering: pixelated;
+    border: 1px solid #1f2630; border-radius: 6px; box-shadow: 0 24px 70px rgba(0,0,0,.6);
+    cursor: default; user-select: none; -webkit-user-drag: none; }
+</style>
+</head>
+<body>
+  <div id="hint">
+    <span><b>voidOS desktop</b> — click the dock to open apps · drag titlebars · the red dot closes</span>
+    <span>this browser is just voidOS's screen + mouse</span>
+  </div>
+  <img id="screen" width="1100" height="720" alt="voidOS desktop" draggable="false" />
+  <script src="/desktop.js"></script>
+</body>
+</html>

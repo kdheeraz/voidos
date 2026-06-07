@@ -1,0 +1,6 @@
+#!/bin/sh
+# Launch a native GUI app onto voidOS's virtual display, as the non-root 'gui'
+# user (many apps, incl. VLC, refuse to run as root). Use from the /os Terminal:
+#   gui-run xterm
+#   gui-run vlc
+exec runuser -u gui -- env DISPLAY=:99 HOME=/home/gui "$@"

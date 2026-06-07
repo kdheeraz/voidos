@@ -1,0 +1,10 @@
+#!/bin/sh
+# Open a URL in Chromium on the voidOS display, detached, with the flags a
+# GPU-less container needs to actually render modern sites (software WebGL).
+# On real hardware the GPU does this natively; the flags are harmless there.
+url="${1:-about:blank}"
+setsid runuser -u gui -- env DISPLAY=:99 HOME=/home/gui chromium \
+  --no-sandbox --disable-dev-shm-usage \
+  --use-gl=angle --use-angle=swiftshader --ignore-gpu-blocklist \
+  --autoplay-policy=no-user-gesture-required \
+  --user-data-dir=/home/gui/.cr --app="$url" </dev/null >/dev/null 2>&1 &

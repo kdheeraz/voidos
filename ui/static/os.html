@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>voidOS</title>
+<link rel="stylesheet" href="/os.css?v=2" />
+</head>
+<body>
+  <div id="wallpaper"></div>
+
+  <header id="topbar">
+    <div class="tb-left"><span class="logo">▸ voidOS</span></div>
+    <div class="tb-right">
+      <span id="tb-sys" class="dim">…</span>
+      <span id="tb-clock" class="clock">--:--:--</span>
+      <button id="power" class="tb-btn" title="Power"></button>
+    </div>
+  </header>
+
+  <main id="desktop"></main>
+
+  <nav id="dock">
+    <button class="dock-app" data-app="files"  title="Files"><span class="ico"></span><span class="lbl">Files</span></button>
+    <button class="dock-app" data-app="terminal" title="Terminal"><span class="ico"></span><span class="lbl">Terminal</span></button>
+    <button class="dock-app" data-app="editor" title="Editor"><span class="ico"></span><span class="lbl">Editor</span></button>
+    <button class="dock-app" data-app="system" title="System"><span class="ico"></span><span class="lbl">System</span></button>
+    <button class="dock-app" data-app="services" title="Services"><span class="ico"></span><span class="lbl">Services</span></button>
+    <button class="dock-app" data-app="processes" title="Processes"><span class="ico"></span><span class="lbl">Procs</span></button>
+    <button class="dock-app" data-app="mind" title="Mind"><span class="ico"></span><span class="lbl">Mind</span></button>
+    <button class="dock-app" data-app="screen" title="Native apps (Screen)"><span class="ico"></span><span class="lbl">Screen</span></button>
+    <span class="dock-sep"></span>
+    <span id="dock-windows"></span>
+  </nav>
+
+  <script src="/os.js?v=2"></script>
+</body>
+</html>

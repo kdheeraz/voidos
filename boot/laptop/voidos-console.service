@@ -1,0 +1,14 @@
+[Unit]
+Description=voidOS Console (web desktop + mind bridge)
+After=voidos-kernel.service
+Requires=voidos-kernel.service
+
+[Service]
+User=void
+EnvironmentFile=/etc/voidos/env
+ExecStart=/opt/voidos/.venv/bin/python /opt/voidos/ui/server.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

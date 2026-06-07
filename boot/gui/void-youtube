@@ -1,0 +1,11 @@
+#!/bin/sh
+# Find the top YouTube result for a search and play it in voidOS's browser.
+#   void-youtube "Let Her Go Passenger"
+q="$*"
+[ -z "$q" ] && { echo "usage: void-youtube <search terms>"; exit 1; }
+id=$(yt-dlp --no-warnings --flat-playlist --get-id "ytsearch1:$q" 2>/dev/null | head -n1)
+if [ -n "$id" ]; then
+  exec void-web "https://www.youtube.com/watch?v=$id"
+else
+  exec void-web "https://www.youtube.com/results?search_query=$(printf '%s' "$q" | tr ' ' '+')"
+fi

@@ -1,0 +1,26 @@
+# voidOS as a complete AI-native Linux desktop (preview image).
+# A real X session (openbox + tint2 + pcmanfm) + the voidOS kernel + the AI shell,
+# with a browser + media launch helpers the AI can drive ("play Let Her Go").
+#   docker build -t voidos:linux -f boot/Dockerfile.linux .
+#   docker run -d -p 127.0.0.1:6080:6080 -e OLLAMA_API_KEY=... voidos:linux
+#   open http://localhost:6080/vnc.html
+FROM voidos:gui
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      tint2 pcmanfm feh chromium \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir --break-system-packages yt-dlp
+
+# pick up the latest surface + mind (the base image baked older copies)
+COPY ui ./ui
+COPY mind ./mind
+
+COPY boot/gui/linux-boot.sh /usr/local/bin/linux-boot.sh
+COPY boot/gui/void-web /usr/local/bin/void-web
+COPY boot/gui/void-youtube /usr/local/bin/void-youtube
+RUN chmod +x /usr/local/bin/linux-boot.sh /usr/local/bin/void-web /usr/local/bin/void-youtube
+
+# Tell the desktop AI shell how to open things, so "play X" / "open Y" just work.
+ENV VOID_SYSTEM="You are on a real Linux desktop. Act by running shell commands via shell.exec and your file/network capabilities directly — NEVER use desktop.* capabilities, and never just hand the user a URL. To open a website: void-web <url>. To play a song or video on YouTube: void-youtube \"<search>\". To open an installed app: gui-run <app> (apt-get install -y <package> first if missing). To build and host a web app: write the files with fs.write, host the folder with net.serve on port 8080, then open it on screen with void-web http://localhost:8080. Always run the steps; reply with one short warm line about what you did."
+
+ENTRYPOINT ["/usr/local/bin/linux-boot.sh"]

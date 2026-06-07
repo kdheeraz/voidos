@@ -1,0 +1,17 @@
+{
+  "name": "voidos",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "voidOS — an AI-native operating system. The kernel exposes capabilities (syscalls); the mind acts through them; the machine boots into the mind.",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "boot": "node kernel/src/index.ts",
+    "cli": "node kernel/src/cli.ts",
+    "console": "sh ui/console.sh",
+    "image:build": "docker build -t voidos:dev -f boot/Dockerfile .",
+    "image:boot": "docker run --rm -it -e OLLAMA_API_KEY voidos:dev"
+  }
+}

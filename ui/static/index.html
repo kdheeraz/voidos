@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>voidOS console</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header id="bar">
+  <span class="b-left"><span class="dot"></span>voidOS<span class="dim">&nbsp;console</span></span>
+  <span class="b-right" id="bar-info">connecting…</span>
+</header>
+
+<section class="fetch">
+<pre class="logo">                _     _  ___  ____
+__   _____ (_) __| |/ _ \/ ___|
+\ \ / / _ \| |/ _` | | | \___ \
+ \ V / (_) | | (_| | |_| |___) |
+  \_/ \___/|_|\__,_|\___/|____/</pre>
+  <div class="finfo" id="finfo"><span class="dim">querying gate…</span></div>
+</section>
+
+<main id="grid">
+  <section class="panel term">
+    <div class="phead"># mind<span class="dim" id="chat-hint">&nbsp;— talk to the OS</span></div>
+    <div class="termlog" id="termlog"></div>
+    <form id="chatform" class="terminput" autocomplete="off">
+      <span class="prompt">you&gt;</span>
+      <input id="msg" placeholder="tell the OS what to do…" autofocus />
+    </form>
+  </section>
+
+  <div class="tiles">
+    <section class="panel"><div class="phead">▸ system</div><div class="pbody" id="b-sys"></div></section>
+    <section class="panel"><div class="phead">▸ capabilities<span class="badge" id="n-caps"></span></div><div class="pbody" id="b-caps"></div></section>
+    <section class="panel"><div class="phead">▸ processes<span class="badge" id="n-proc"></span></div><div class="pbody" id="b-proc"></div></section>
+    <section class="panel"><div class="phead">▸ services<span class="badge" id="n-svc"></span></div><div class="pbody" id="b-svc"></div></section>
+    <section class="panel"><div class="phead">▸ cron<span class="badge" id="n-cron"></span></div><div class="pbody" id="b-cron"></div></section>
+    <section class="panel"><div class="phead">▸ servers<span class="badge" id="n-net"></span></div><div class="pbody" id="b-net"></div></section>
+    <section class="panel wide"><div class="phead">▸ audit<span class="dim">&nbsp;live</span></div><div class="pbody scroll" id="b-audit"></div></section>
+  </div>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
