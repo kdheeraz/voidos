@@ -62,7 +62,9 @@ cat > /usr/local/bin/void-web <<'EOF'
 #!/bin/sh
 # Open a URL as its own window on the voidOS desktop (real GPU here — no swiftshader).
 url="${1:-about:blank}"
-setsid chromium --app="$url" --autoplay-policy=no-user-gesture-required \
+# open at a landscape size so sites render their desktop layout (not a narrow column)
+setsid chromium --app="$url" --window-size=1600,900 --window-position=160,90 \
+  --autoplay-policy=no-user-gesture-required \
   --user-data-dir="$HOME/.cr" </dev/null >/dev/null 2>&1 &
 EOF
 cat > /usr/local/bin/void-youtube <<'EOF'
@@ -116,8 +118,8 @@ cat > /home/$VOID_USER/.xinitrc <<'EOF'
 set -a; . /etc/voidos.env; set +a
 export HOME=/home/void
 openbox &
-# the virtio-GPU boots at a low mode; raise it to 4K so the surface is crisp
-xrandr --output Virtual-1 --mode 3840x2160 2>/dev/null
+# the virtio-GPU boots at a low mode; raise it to Full HD
+xrandr --output Virtual-1 --mode 1920x1080 2>/dev/null
 # compositor (real transparency for the dock) + the dock (top-center, shows open apps)
 picom --config "$HOME/.config/picom.conf" >/dev/null 2>&1 &
 ( sleep 2; tint2 >/dev/null 2>&1 ) &
@@ -132,7 +134,7 @@ for _ in $(seq 1 40); do
 done
 rm -f "$HOME"/.cr-shell/Singleton* 2>/dev/null
 # the warm AI surface, fullscreen, AS the desktop (real GPU — hardware WebGL)
-exec chromium --class=voidos --force-device-scale-factor=2 --app=http://localhost:7777/her \
+exec chromium --class=voidos --app=http://localhost:7777/her \
   --autoplay-policy=no-user-gesture-required \
   --user-data-dir="$HOME/.cr-shell"
 EOF
