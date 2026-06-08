@@ -91,13 +91,24 @@ async function ask(text) {
   you.textContent = text;
   reply.style.opacity = "0";
   setState("thinking");
+  // runtime backend switch:  /backend <ollama|openai|anthropic> [model] [key]
+  const isBackend = text.toLowerCase().startsWith("/backend");
+  let url = "/api/her", body;
+  if (isBackend) {
+    const p = text.split(/\s+/);
+    url = "/api/backend";
+    body = JSON.stringify({ backend: p[1] || "", model: p[2] || "", key: p[3] || "" });
+  } else {
+    body = JSON.stringify({ message: text });
+  }
   try {
-    const r = await fetch("/api/her", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+    const r = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body,
     });
     const d = await r.json();
-    reply.textContent = d.reply || d.error || "…";
+    reply.textContent = isBackend
+      ? (d.error ? "⚠ " + d.error : `now on ${d.backend} · ${d.model}`)
+      : (d.reply || d.error || "…");
     reply.style.opacity = "1";
     setState("responding");
     clearTimeout(respTimer);

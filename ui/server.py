@@ -130,6 +130,40 @@ def run_her(message: str) -> dict:
         _chat_lock.release()
 
 
+def switch_backend(backend: str = "", model: str = "", key: str = "") -> dict:
+    """Swap the LLM backend/model at runtime — no restart. Rebuilds the companion
+    (which resets the conversation). Pass nothing to just report current state."""
+    global _companion
+    b = (backend or "").lower().strip()
+    if b and b not in ("ollama", "openai", "anthropic"):
+        return {"error": f"unknown backend '{backend}' — use ollama, openai, or anthropic"}
+    with _chat_lock:
+        target = b or os.environ.get("VOID_BACKEND", "") or (
+            "anthropic" if os.environ.get("ANTHROPIC_API_KEY")
+            else "openai" if os.environ.get("OPENAI_API_KEY") else "ollama")
+        key_env = {"openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY",
+                   "ollama": "OLLAMA_API_KEY"}.get(target)
+        # cloud backends need a key up front; refuse cleanly rather than switch to a dud
+        if target in ("openai", "anthropic") and not (key or os.environ.get(key_env)):
+            return {"error": f"{target} needs {key_env} — add it to /etc/voidos.env or pass the key"}
+        changed = bool(b or model or key)
+        if b:
+            os.environ["VOID_BACKEND"] = b
+            if not model:
+                os.environ.pop("VOID_MODEL", None)  # fall back to the new backend's default
+        if model:
+            os.environ["VOID_MODEL"] = model
+        if key and key_env:
+            os.environ[key_env] = key
+        if changed:
+            _companion = None  # rebuilt with the new settings below
+        try:
+            agent = get_companion()
+        except Exception as e:  # noqa: BLE001
+            return {"error": str(e)}
+        return {"backend": agent.backend.name, "model": agent.backend.model, "switched": changed}
+
+
 def run_chat(message: str) -> dict:
     with _chat_lock:
         try:
@@ -228,6 +262,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, {"error": f"{e.code}: {e.message}"})
             except OSError:
                 self._json(503, {"error": "gate down"})
+            return
+
+        if self.path == "/api/backend":
+            self._json(200, switch_backend(
+                backend=str(payload.get("backend", "")),
+                model=str(payload.get("model", "")),
+                key=str(payload.get("key", "")),
+            ))
             return
 
         if self.path in ("/api/chat", "/api/her"):
