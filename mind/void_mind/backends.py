@@ -51,6 +51,11 @@ class OllamaBackend(Backend):
         self.model = os.environ.get("VOID_MODEL", "gpt-oss:120b")
 
     def chat(self, system, messages, tools):
+        # Thinking models (qwen3 etc.) reason at length by default — far too slow for
+        # an interactive OS. The /no_think soft-switch disables it model-side (and is
+        # harmless to non-thinking models); set VOID_THINK=1 to keep thinking on.
+        if os.environ.get("VOID_THINK", "").lower() not in ("1", "true", "on", "yes"):
+            system = (system or "") + "\n/no_think"
         msgs: list[dict] = [{"role": "system", "content": system}]
         for m in messages:
             if m["role"] == "tool":
