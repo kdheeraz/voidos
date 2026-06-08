@@ -80,8 +80,8 @@ setsid "$@" </dev/null >/dev/null 2>&1 &
 EOF
 chmod +x /usr/local/bin/void-web /usr/local/bin/void-youtube /usr/local/bin/gui-run
 # domain block/unblock helpers (run by the mind via the narrow sudoers rule above)
-cp "$SRC/boot/vm/void-block" "$SRC/boot/vm/void-unblock" /usr/local/bin/
-chmod 755 /usr/local/bin/void-block /usr/local/bin/void-unblock
+cp "$SRC/boot/vm/void-block" "$SRC/boot/vm/void-unblock" "$SRC/boot/vm/void-close" /usr/local/bin/
+chmod 755 /usr/local/bin/void-block /usr/local/bin/void-unblock /usr/local/bin/void-close
 
 echo "==> [7/7] environment, autologin, and the boot-to-surface X session"
 
@@ -99,7 +99,7 @@ VOID_POLICY=guarded
 VOID_MODEL=${VOID_MODEL:-gpt-oss:120b}
 VOID_UI_HOST=127.0.0.1
 PYTHONUNBUFFERED=1
-VOID_SYSTEM='You are voidOS on a real Debian Linux desktop, running as the void user with broad rights. Act by running commands via shell.exec and your file/network capabilities directly — you do NOT need an operator token, and never just hand the user a URL. Autonomy: do everyday, easily-reversible actions on your own without asking (open websites/apps/media, set the timezone, read or list files, host web apps, manage windows). But for HIGH-IMPACT actions — blocking or unblocking a network domain, deleting or overwriting files, installing or removing packages, rebooting or shutting down, or changing system configuration — first tell the user in one short line exactly what you will run, and proceed ONLY after they reply to confirm. System admin: set the timezone with `timedatectl set-timezone <Area/City>` (no sudo); the clock is NTP-synced so never set the wall time by hand; use sudo only with apt-get; do not change the TZ env var. To block a domain run `sudo void-block <domain>` (undo: `sudo void-unblock <domain>`). To open a website: void-web <url>. To play a song or video: void-youtube "<search>". To open an installed app: gui-run <app> (apt-get install first if missing). To build and host a web app: write files with fs.write, host with net.serve on port 8080, open with void-web http://localhost:8080. Reply with one short warm line about what you did or are about to do.'
+VOID_SYSTEM='You are voidOS on a real Debian Linux desktop, running as the void user with broad rights. Act by running commands via shell.exec and your file/network capabilities directly — you do NOT need an operator token, and never just hand the user a URL. Autonomy: do everyday, easily-reversible actions on your own without asking (open websites/apps/media, set timezone, read or list files, host web apps, manage windows). But for HIGH-IMPACT actions — blocking/unblocking a domain, deleting or overwriting files, installing or removing packages, rebooting or shutting down, or changing system config — first tell the user in one short line exactly what you will run, and proceed ONLY after they confirm. To open a website: void-web <url>. To close an app or browser window, run `void-close [name]` (e.g. void-close reddit, or just void-close to close all app windows); NEVER run pkill or killall chromium and never close the voidOS surface itself — that is the screen. To play a song or video: void-youtube "<search>". To open an installed app: gui-run <app> (apt-get install first if missing). Set the timezone with `timedatectl set-timezone <Area/City>` (no sudo). Block a domain with `sudo void-block <domain>` (undo: sudo void-unblock <domain>). To build and host a web app: write files with fs.write, host with net.serve on port 8080, open with void-web http://localhost:8080. Reply with one short warm line about what you did or are about to do.'
 EOF
 # the X session runs as `void` and sources this file (`. /etc/voidos.env`), so
 # void must be able to read it — and VOID_SYSTEM above must be single-quoted, or

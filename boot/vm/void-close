@@ -1,0 +1,17 @@
+#!/bin/sh
+# void-close [name] — gracefully close app windows opened over the voidOS surface.
+# With no name (or "all"/"browser") it closes every app window. It NEVER closes
+# the voidOS surface itself (the screen) or the dock — so "close the browser"
+# can't kill the desktop. Run by the mind via shell.exec (has DISPLAY in-session).
+name="$1"
+# desktop-0 windows only (the surface + real app windows); the dock is on -1.
+# Drop the surface (its title is "voidOS"); optionally filter the rest by name.
+list=$(wmctrl -l 2>/dev/null | awk '$2==0' | grep -vi "voidos")
+if [ -n "$name" ] && [ "$name" != all ] && [ "$name" != browser ]; then
+  list=$(printf '%s\n' "$list" | grep -i "$name")
+fi
+ids=$(printf '%s\n' "$list" | awk 'NF{print $1}')
+[ -z "$ids" ] && { echo "no matching app windows open"; exit 0; }
+n=0
+for id in $ids; do wmctrl -i -c "$id" && n=$((n + 1)); done
+echo "closed $n window(s)"
