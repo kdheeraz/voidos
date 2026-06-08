@@ -102,9 +102,32 @@ npm run boot                                # terminal 1: the gate
 .venv/bin/python mind/shell.py              # terminal 2: the shell
 ```
 
-**Model** — defaults to `gpt-oss:120b` on Ollama cloud. Override with
-`VOID_MODEL` (e.g. `export VOID_MODEL=deepseek-v4-pro`, which needs an Ollama
-subscription). Point `OLLAMA_HOST` at a local Ollama to run keyless/offline.
+**LLM backend** — the mind runs on a pluggable backend (`mind/void_mind/backends.py`).
+Select it with `VOID_BACKEND` (inferred from whichever API key is present) and the
+model with `VOID_MODEL`:
+
+| Backend | Env to set | Example model |
+| --- | --- | --- |
+| Ollama cloud | `OLLAMA_API_KEY=…` | `gpt-oss:120b` |
+| Ollama local | `OLLAMA_HOST=http://localhost:11434` | `qwen3:8b` |
+| OpenAI | `VOID_BACKEND=openai`, `OPENAI_API_KEY=sk-…` | `gpt-4o` |
+| Anthropic | `VOID_BACKEND=anthropic`, `ANTHROPIC_API_KEY=sk-ant-…` | `claude-sonnet-4-6` |
+
+Switch **at runtime** (no restart) — type a command in the surface bar, or call the API:
+
+```
+/backend openai gpt-4o sk-…             # in the voidOS surface
+/backend anthropic claude-sonnet-4-6    # key optional if already in the env
+/backend ollama qwen3:8b                # a local model
+/backend                                # show the current backend
+
+curl -X POST localhost:7777/api/backend \
+  -d '{"backend":"anthropic","model":"claude-sonnet-4-6","key":"sk-ant-…"}'
+```
+
+Runtime switches are in-memory (reset on restart) — set the env vars for a
+permanent default. Thinking models (e.g. qwen3) reason at length and are slow;
+the Ollama backend sends `/no_think` by default (set `VOID_THINK=1` to keep it).
 
 ```
 you> make a notes folder with a todo list for shipping milestone 3
