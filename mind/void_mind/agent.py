@@ -1,6 +1,7 @@
 """The voidOS mind — an agent loop over the kernel's capability gate.
 
-Backed by Ollama (ollama.com cloud by default, or any Ollama host). The agent's
+Backed by a pluggable LLM backend — Ollama (local or cloud), OpenAI, or Anthropic
+(see backends.py; choose with VOID_BACKEND / VOID_MODEL). The agent's
 entire toolset is discovered at runtime from `sys.list`: every capability the
 kernel exposes becomes a tool, with the capability's own JSON schema as the
 tool's parameter schema. Nothing is hardcoded — boot a kernel with more
@@ -14,8 +15,7 @@ import json
 import os
 from typing import Any, Callable, Optional
 
-from ollama import Client
-
+from .backends import Backend, make_backend
 from .client import Void, VoidError
 
 # A human gate: given (capability, args, risk), return True to allow.
@@ -23,10 +23,6 @@ Approver = Callable[[str, dict, str], bool]
 # Issued by the operator to unblock one risky call (e.g. grant it in the kernel).
 Granter = Callable[[str], None]
 
-# Defaults target Ollama cloud. deepseek-v4-pro is the intended model but needs
-# an Ollama subscription; override either with env vars.
-DEFAULT_HOST = "https://ollama.com"
-DEFAULT_MODEL = "gpt-oss:120b"
 MAX_STEPS = 25  # safety bound on tool-call iterations per user turn
 
 SYSTEM_PROMPT = """\
@@ -58,24 +54,13 @@ def _tool_name(capability: str) -> str:
     return capability.replace(".", "_")
 
 
-def make_client() -> Client:
-    """Build an Ollama client; sends the API key as a bearer token if present."""
-    host = os.environ.get("OLLAMA_HOST", DEFAULT_HOST)
-    key = os.environ.get("OLLAMA_API_KEY")
-    headers = {"Authorization": f"Bearer {key}"} if key else None
-    # A finite timeout is essential: without it a stalled model call hangs the
-    # turn forever and (since the surface serializes turns) freezes the whole UI.
-    timeout = float(os.environ.get("VOID_OLLAMA_TIMEOUT", "120"))
-    return Client(host=host, headers=headers, timeout=timeout)
-
-
 class VoidAgent:
     """Drives a conversation with the model, executing voidOS syscalls as tools."""
 
     def __init__(
         self,
         void: Void | None = None,
-        client: Client | None = None,
+        backend: Backend | None = None,
         model: str | None = None,
         approver: Optional[Approver] = None,
         granter: Optional[Granter] = None,
@@ -84,12 +69,13 @@ class VoidAgent:
         exclude_tools: list[str] | None = None,
     ) -> None:
         self.void = void or Void()
-        self.client = client or make_client()
-        self.model = model or os.environ.get("VOID_MODEL", DEFAULT_MODEL)
+        self.backend = backend or make_backend()
+        self.system = system or SYSTEM_PROMPT
+        self.model = model or self.backend.model
         self.approver = approver  # consulted before any non-read syscall
         self.granter = granter    # unblocks an approved syscall (operator-side)
         self.tap = tap            # observer called with (capability, args, risk) per syscall
-        self.messages: list[Any] = [{"role": "system", "content": system or SYSTEM_PROMPT}]
+        self.messages: list[Any] = []  # normalized history; system is kept separate
 
         # Discover the kernel's capabilities and map them to tools. A caller may
         # exclude whole namespaces it never uses (by name prefix) to cut the tool
@@ -104,16 +90,11 @@ class VoidAgent:
             self._risk[name] = cap.get("risk", "read")
             if exclude and cap["name"].startswith(exclude):
                 continue
-            self.tools.append(
-                {
-                    "type": "function",
-                    "function": {
-                        "name": name,
-                        "description": cap["summary"],
-                        "parameters": cap.get("params") or {"type": "object", "properties": {}},
-                    },
-                }
-            )
+            self.tools.append({
+                "name": name,
+                "description": cap["summary"],
+                "parameters": cap.get("params") or {"type": "object", "properties": {}},
+            })
 
     def _run_syscall(self, tool_name: str, args: dict[str, Any]) -> str:
         """Execute one capability; return a text result (errors encoded inline)."""
@@ -143,27 +124,30 @@ class VoidAgent:
 
         final_text = ""
         for _ in range(MAX_STEPS):
-            response = self.client.chat(model=self.model, messages=self.messages, tools=self.tools)
-            msg = response.message
+            reply = self.backend.chat(self.system, self.messages, self.tools)
 
-            if msg.content:
-                final_text = msg.content
-                print(f"\nvoid> {msg.content}")
+            if reply.content:
+                final_text = reply.content
+                print(f"\nvoid> {reply.content}")
 
-            # Preserve the assistant turn verbatim (carries tool_calls structure).
-            self.messages.append(msg)
+            self.messages.append({
+                "role": "assistant",
+                "content": reply.content,
+                "tool_calls": reply.tool_calls,
+            })
 
-            tool_calls = msg.tool_calls or []
-            if not tool_calls:
+            if not reply.tool_calls:
                 return final_text
 
-            for tc in tool_calls:
-                name = tc.function.name
-                args = dict(tc.function.arguments or {})
+            for tc in reply.tool_calls:
+                name = tc["name"]
+                args = dict(tc["arguments"] or {})
                 pretty = ", ".join(f"{k}={v!r}" for k, v in args.items())
                 print(f"  · syscall {self._tool_to_capability.get(name, name)}({pretty})")
                 result = self._run_syscall(name, args)
-                self.messages.append({"role": "tool", "tool_name": name, "content": result})
+                self.messages.append({
+                    "role": "tool", "id": tc["id"], "name": name, "content": result,
+                })
 
         print("\nvoid> [reached the syscall step limit for this turn]")
         return final_text
