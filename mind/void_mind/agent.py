@@ -63,7 +63,10 @@ def make_client() -> Client:
     host = os.environ.get("OLLAMA_HOST", DEFAULT_HOST)
     key = os.environ.get("OLLAMA_API_KEY")
     headers = {"Authorization": f"Bearer {key}"} if key else None
-    return Client(host=host, headers=headers)
+    # A finite timeout is essential: without it a stalled model call hangs the
+    # turn forever and (since the surface serializes turns) freezes the whole UI.
+    timeout = float(os.environ.get("VOID_OLLAMA_TIMEOUT", "120"))
+    return Client(host=host, headers=headers, timeout=timeout)
 
 
 class VoidAgent:

@@ -105,7 +105,11 @@ def get_companion():
 
 
 def run_her(message: str) -> dict:
-    with _chat_lock:
+    # One turn at a time (shared conversation state), but never block forever: if a
+    # turn is already running, answer instantly instead of freezing the whole UI.
+    if not _chat_lock.acquire(timeout=2):
+        return {"reply": "Still finishing the last thing — give me a moment, then ask again."}
+    try:
         try:
             agent = get_companion()
         except RuntimeError as e:
@@ -117,6 +121,8 @@ def run_her(message: str) -> dict:
             if "subscription" in msg:
                 msg = "I can't reach my mind right now — that model needs a subscription."
             return {"error": msg}
+    finally:
+        _chat_lock.release()
 
 
 def run_chat(message: str) -> dict:
