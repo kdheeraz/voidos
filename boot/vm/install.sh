@@ -43,7 +43,7 @@ echo "==> [5/7] the void user + rootfs"
 id "$VOID_USER" >/dev/null 2>&1 || useradd -m -s /bin/bash "$VOID_USER"
 usermod -aG video,render,input "$VOID_USER" 2>/dev/null || true
 # let the AI install apps on demand (gui-run → apt) without a password prompt
-echo "$VOID_USER ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt" > /etc/sudoers.d/voidos
+echo "$VOID_USER ALL=(ALL) NOPASSWD: /usr/bin/apt-get, /usr/bin/apt, /usr/local/bin/void-block, /usr/local/bin/void-unblock" > /etc/sudoers.d/voidos
 chmod 440 /etc/sudoers.d/voidos
 # let the AI set system time/zone via timedatectl without hanging on a polkit auth prompt
 install -d /etc/polkit-1/rules.d
@@ -79,6 +79,9 @@ cat > /usr/local/bin/gui-run <<'EOF'
 setsid "$@" </dev/null >/dev/null 2>&1 &
 EOF
 chmod +x /usr/local/bin/void-web /usr/local/bin/void-youtube /usr/local/bin/gui-run
+# domain block/unblock helpers (run by the mind via the narrow sudoers rule above)
+cp "$SRC/boot/vm/void-block" "$SRC/boot/vm/void-unblock" /usr/local/bin/
+chmod 755 /usr/local/bin/void-block /usr/local/bin/void-unblock
 
 echo "==> [7/7] environment, autologin, and the boot-to-surface X session"
 
@@ -96,7 +99,7 @@ VOID_POLICY=guarded
 VOID_MODEL=${VOID_MODEL:-gpt-oss:120b}
 VOID_UI_HOST=127.0.0.1
 PYTHONUNBUFFERED=1
-VOID_SYSTEM='You are voidOS on a real Debian Linux desktop, running as the void user with broad rights. Act by running commands via shell.exec and your file/network capabilities directly — you do NOT need an operator token for ordinary tasks, and never just hand the user a URL. System admin: set the timezone with `timedatectl set-timezone <Area/City>` (no sudo — e.g. timedatectl set-timezone Asia/Kolkata); the clock is NTP-synced so never set the wall time by hand; use sudo only with apt-get to install packages; do not change the TZ env var to set the timezone. To open a website: void-web <url>. To play a song or video: void-youtube "<search>". To open an installed app: gui-run <app> (sudo apt-get install -y <package> first if missing). To build and host a web app: write the files with fs.write, host the folder with net.serve on port 8080, then open it with void-web http://localhost:8080. Always run the steps yourself; reply with one short warm line about what you did.'
+VOID_SYSTEM='You are voidOS on a real Debian Linux desktop, running as the void user with broad rights. Act by running commands via shell.exec and your file/network capabilities directly — you do NOT need an operator token for ordinary tasks, and never just hand the user a URL. System admin: set the timezone with `timedatectl set-timezone <Area/City>` (no sudo — e.g. timedatectl set-timezone Asia/Kolkata); the clock is NTP-synced so never set the wall time by hand; use sudo only with apt-get to install packages; do not change the TZ env var to set the timezone. To block outgoing access to a domain run `sudo void-block <domain>` (re-allow with `sudo void-unblock <domain>`). To open a website: void-web <url>. To play a song or video: void-youtube "<search>". To open an installed app: gui-run <app> (sudo apt-get install -y <package> first if missing). To build and host a web app: write the files with fs.write, host the folder with net.serve on port 8080, then open it with void-web http://localhost:8080. Always run the steps yourself; reply with one short warm line about what you did.'
 EOF
 # the X session runs as `void` and sources this file (`. /etc/voidos.env`), so
 # void must be able to read it — and VOID_SYSTEM above must be single-quoted, or

@@ -1,0 +1,16 @@
+#!/bin/sh
+# void-block <domain> — block outgoing access to a domain by null-routing its
+# name in /etc/hosts, for BOTH IPv4 (0.0.0.0) and IPv6 (::). Reversible with
+# void-unblock. Runs as root via a narrow sudoers rule so the mind can manage it.
+d="$1"
+case "$d" in
+  ''|*[!a-zA-Z0-9.-]*) echo "usage: void-block <domain>  (letters, digits, . and - only)"; exit 2 ;;
+esac
+if ! grep -qF " $d # voidOS-block" /etc/hosts 2>/dev/null; then
+  {
+    printf '0.0.0.0 %s # voidOS-block\n:: %s # voidOS-block\n' "$d" "$d"
+    printf '0.0.0.0 www.%s # voidOS-block\n:: www.%s # voidOS-block\n' "$d" "$d"
+  } >> /etc/hosts
+fi
+resolvectl flush-caches 2>/dev/null || true   # drop any cached DNS so it takes effect now
+echo "blocked: $d"

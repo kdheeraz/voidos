@@ -1,0 +1,12 @@
+#!/bin/sh
+# void-unblock <domain> — remove a void-block entry for a domain (re-allow it).
+d="$1"
+case "$d" in
+  ''|*[!a-zA-Z0-9.-]*) echo "usage: void-unblock <domain>"; exit 2 ;;
+esac
+tmp=$(mktemp)
+grep -vF " $d # voidOS-block" /etc/hosts | grep -vF " www.$d # voidOS-block" > "$tmp"
+cat "$tmp" > /etc/hosts        # write back in place (preserve /etc/hosts perms)
+rm -f "$tmp"
+resolvectl flush-caches 2>/dev/null || true
+echo "unblocked: $d"
