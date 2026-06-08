@@ -81,6 +81,7 @@ class VoidAgent:
         granter: Optional[Granter] = None,
         tap: Optional[Callable[[str, dict, str], None]] = None,
         system: str | None = None,
+        exclude_tools: list[str] | None = None,
     ) -> None:
         self.void = void or Void()
         self.client = client or make_client()
@@ -90,7 +91,10 @@ class VoidAgent:
         self.tap = tap            # observer called with (capability, args, risk) per syscall
         self.messages: list[Any] = [{"role": "system", "content": system or SYSTEM_PROMPT}]
 
-        # Discover the kernel's capabilities and map them to tools.
+        # Discover the kernel's capabilities and map them to tools. A caller may
+        # exclude whole namespaces it never uses (by name prefix) to cut the tool
+        # schema sent every turn — the mapping is kept, only the schema is dropped.
+        exclude = tuple(exclude_tools or ())
         self.tools: list[dict[str, Any]] = []
         self._tool_to_capability: dict[str, str] = {}
         self._risk: dict[str, str] = {}
@@ -98,6 +102,8 @@ class VoidAgent:
             name = _tool_name(cap["name"])
             self._tool_to_capability[name] = cap["name"]
             self._risk[name] = cap.get("risk", "read")
+            if exclude and cap["name"].startswith(exclude):
+                continue
             self.tools.append(
                 {
                     "type": "function",

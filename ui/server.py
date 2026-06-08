@@ -100,7 +100,12 @@ def get_companion():
         void.grant("all", uses=-1)
     extra = os.environ.get("VOID_SYSTEM", "")  # desktop launch commands, if present
     sysprompt = COMPANION_PROMPT + (("\n\n" + extra) if extra else "")
-    _companion = VoidAgent(void=void, system=sysprompt)
+    # The companion surface never uses these namespaces; excluding them ~halves
+    # the tool schema sent every turn (process mgmt is covered by shell.exec).
+    _companion = VoidAgent(
+        void=void, system=sysprompt,
+        exclude_tools=["desktop.", "sys.", "proc.", "svc."],
+    )
     return _companion
 
 
