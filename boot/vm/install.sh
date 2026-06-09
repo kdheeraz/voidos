@@ -122,6 +122,8 @@ cat > /home/$VOID_USER/.xinitrc <<'EOF'
 set -a; . /etc/voidos.env; set +a
 export HOME=/home/void
 openbox &
+# paint the root the theme color immediately so cold-start is never a white flash
+xsetroot -solid '#0b0506' 2>/dev/null
 # the virtio-GPU boots at a low mode; raise it to Full HD
 xrandr --output Virtual-1 --mode 1920x1080 2>/dev/null
 # compositor (real transparency for the dock) + the dock (top-center, shows open apps)
@@ -137,8 +139,11 @@ for _ in $(seq 1 40); do
   sleep 0.3
 done
 rm -f "$HOME"/.cr-shell/Singleton* 2>/dev/null
-# the warm AI surface, fullscreen, AS the desktop (real GPU — hardware WebGL)
+# the warm AI surface, fullscreen, AS the desktop.
+# --disable-gpu: the virgl GPU present path stalls the first paint 30-60s (white
+# screen) in the VM; software compositing paints in ~1s and /her is canvas-2D.
 exec chromium --class=voidos --app=http://localhost:7777/her \
+  --disable-gpu --no-first-run --disable-session-crashed-bubble \
   --autoplay-policy=no-user-gesture-required \
   --user-data-dir="$HOME/.cr-shell"
 EOF
