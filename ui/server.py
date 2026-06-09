@@ -130,9 +130,10 @@ def run_her(message: str) -> dict:
         _chat_lock.release()
 
 
-def switch_backend(backend: str = "", model: str = "", key: str = "") -> dict:
-    """Swap the LLM backend/model at runtime — no restart. Rebuilds the companion
-    (which resets the conversation). Pass nothing to just report current state."""
+def switch_backend(backend: str = "", model: str = "", key: str = "", host: str = "") -> dict:
+    """Swap the LLM backend/model/host at runtime — no restart. Rebuilds the
+    companion (resets the conversation). Pass nothing to just report current state.
+    `host` sets OLLAMA_HOST (https://ollama.com for remote, http://host:11434 for local)."""
     global _companion
     b = (backend or "").lower().strip()
     if b and b not in ("ollama", "openai", "anthropic"):
@@ -146,7 +147,7 @@ def switch_backend(backend: str = "", model: str = "", key: str = "") -> dict:
         # cloud backends need a key up front; refuse cleanly rather than switch to a dud
         if target in ("openai", "anthropic") and not (key or os.environ.get(key_env)):
             return {"error": f"{target} needs {key_env} — add it to /etc/voidos.env or pass the key"}
-        changed = bool(b or model or key)
+        changed = bool(b or model or key or host)
         if b:
             os.environ["VOID_BACKEND"] = b
             if not model:
@@ -155,13 +156,18 @@ def switch_backend(backend: str = "", model: str = "", key: str = "") -> dict:
             os.environ["VOID_MODEL"] = model
         if key and key_env:
             os.environ[key_env] = key
+        if host:  # remote: https://ollama.com  ·  local: http://192.168.64.1:11434
+            os.environ["OLLAMA_HOST"] = host
         if changed:
             _companion = None  # rebuilt with the new settings below
         try:
             agent = get_companion()
         except Exception as e:  # noqa: BLE001
             return {"error": str(e)}
-        return {"backend": agent.backend.name, "model": agent.backend.model, "switched": changed}
+        out = {"backend": agent.backend.name, "model": agent.backend.model, "switched": changed}
+        if agent.backend.name == "ollama":
+            out["host"] = os.environ.get("OLLAMA_HOST", "https://ollama.com")
+        return out
 
 
 def run_chat(message: str) -> dict:
@@ -269,6 +275,7 @@ class Handler(BaseHTTPRequestHandler):
                 backend=str(payload.get("backend", "")),
                 model=str(payload.get("model", "")),
                 key=str(payload.get("key", "")),
+                host=str(payload.get("host", "")),
             ))
             return
 

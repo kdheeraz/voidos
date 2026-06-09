@@ -95,9 +95,12 @@ async function ask(text) {
   const isBackend = text.toLowerCase().startsWith("/backend");
   let url = "/api/her", body;
   if (isBackend) {
+    // /backend <name> [model] [key] [host-url]  (a token starting http… is the host)
     const p = text.split(/\s+/);
+    let key = "", host = "";
+    for (const t of p.slice(3)) { if (/^https?:\/\//.test(t)) host = t; else key = t; }
     url = "/api/backend";
-    body = JSON.stringify({ backend: p[1] || "", model: p[2] || "", key: p[3] || "" });
+    body = JSON.stringify({ backend: p[1] || "", model: p[2] || "", key, host });
   } else {
     body = JSON.stringify({ message: text });
   }
@@ -107,7 +110,7 @@ async function ask(text) {
     });
     const d = await r.json();
     reply.textContent = isBackend
-      ? (d.error ? "⚠ " + d.error : `now on ${d.backend} · ${d.model}`)
+      ? (d.error ? "⚠ " + d.error : `now on ${d.backend} · ${d.model}${d.host ? " · " + d.host : ""}`)
       : (d.reply || d.error || "…");
     reply.style.opacity = "1";
     setState("responding");
