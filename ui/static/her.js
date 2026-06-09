@@ -10,11 +10,15 @@ const reply = document.getElementById("reply");
 const input = document.getElementById("input");
 const clock = document.getElementById("clock");
 
+// The orb is a soft, blurry glow, so a half-resolution backing buffer is visually
+// identical but ~4× cheaper to fill (cost scales with pixel count). CSS scales it
+// back up to full-screen (#orb is width/height:100%).
+const RENDER_SCALE = 0.5;
 let W = 0, H = 0, dpr = 1;
 function resize() {
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
-  W = canvas.width = innerWidth * dpr;
-  H = canvas.height = innerHeight * dpr;
+  dpr = Math.min(window.devicePixelRatio || 1, 2) * RENDER_SCALE;
+  W = canvas.width = Math.round(innerWidth * dpr);
+  H = canvas.height = Math.round(innerHeight * dpr);
 }
 addEventListener("resize", resize);
 resize();
@@ -25,10 +29,11 @@ const setState = (s) => { state = s; document.body.dataset.state = s; };
 // ---- the living orb ----
 // Layered, additive glow for a luminous, dimensional presence (not a flat disk):
 // volumetric bloom + hot multi-hue core + specular highlight + rim light.
-let amp = 0.35, t = 0;
+const FPS = 30, FRAME = 1000 / FPS;
+let amp = 0.35, t = 0, last = 0, rafId = 0;
 function arc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
 function draw() {
-  t += 0.016;
+  t += FRAME / 1000;  // ~0.033/frame, so breathing speed matches the old 60fps × 0.016
   const base =
     state === "thinking" ? 0.50 + 0.05 * Math.sin(t * 4.2)
     : state === "responding" ? 0.56 + 0.07 * Math.sin(t * 2.0)
@@ -72,9 +77,19 @@ function draw() {
   ctx.fillStyle = rim; arc(cx, cy, R * 1.08);
   ctx.globalCompositeOperation = "source-over";
 
-  requestAnimationFrame(draw);
 }
-draw();
+function loop(now) {
+  rafId = requestAnimationFrame(loop);
+  if (now - last < FRAME) return;  // throttle to ~30fps — half the redraws, identical look
+  last = now;
+  draw();
+}
+rafId = requestAnimationFrame(loop);
+// stop animating when the surface is backgrounded — no CPU spent on an unseen orb
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { cancelAnimationFrame(rafId); rafId = 0; }
+  else if (!rafId) { last = 0; rafId = requestAnimationFrame(loop); }
+});
 
 // ---- clock ----
 function tick() {
