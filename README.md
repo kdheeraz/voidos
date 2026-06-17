@@ -5,6 +5,9 @@ machine but the primary interface *to* the machine. The long-term goal is a
 **bootable image** (QEMU / bare metal) that, instead of a login shell, hands the
 machine to the voidOS mind.
 
+**New here?** Read [docs/why-voidos.md](docs/why-voidos.md) for the problem voidOS
+solves, plus [demo videos](docs/media/).
+
 ## Architecture
 
 voidOS is split across two halves that meet at a single, narrow boundary — the
